@@ -35,7 +35,7 @@ func main() {
 		&models.BlacklistedToken{},
 		&models.DepartmentBudget{},
 	); err != nil {
-		log.Fatalf("failed to migrate: %v", err)
+		log.Printf("migration warning (non-fatal): %v", err)
 	}
 
 	// Repositories
@@ -45,6 +45,7 @@ func main() {
 	attRepo := repository.NewAttendanceRepository(db)
 	leaveRepo := repository.NewLeaveRepository(db)
 	salRepo := repository.NewSalaryRepository(db)
+	blackListRepo := repository.NewBlacklistedTokenRepository(db)
 
 	// Services
 	deptSvc := service.NewDepartmentService(deptRepo)
@@ -53,6 +54,7 @@ func main() {
 	attSvc := service.NewAttendanceService(attRepo)
 	leaveSvc := service.NewLeaveService(leaveRepo)
 	salSvc := service.NewSalaryService(salRepo, attRepo, empRepo)
+	authSvc := service.NewAuthService(empRepo, blackListRepo)
 
 	// Controllers
 	deptCtrl := controller.NewDepartmentController(deptSvc)
@@ -61,6 +63,7 @@ func main() {
 	attCtrl := controller.NewAttendanceController(attSvc)
 	leaveCtrl := controller.NewLeaveController(leaveSvc)
 	salCtrl := controller.NewSalaryController(salSvc)
+	authCtrl := controller.NewAuthController(authSvc)
 
 	r := gin.Default()
 	router.DepartmentRoutes(r, deptCtrl)
@@ -69,6 +72,7 @@ func main() {
 	router.AttendanceRoutes(r, attCtrl)
 	router.LeaveRoutes(r, leaveCtrl)
 	router.SalaryRoutes(r, salCtrl)
+	router.AuthRoutes(r, authCtrl)
 
 	port := os.Getenv("PORT")
 	if port == "" {

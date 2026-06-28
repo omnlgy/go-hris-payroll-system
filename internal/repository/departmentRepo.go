@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 
+	"github.com/omnlgy/go-hris-payroll-system/internal/dto"
 	"github.com/omnlgy/go-hris-payroll-system/internal/models"
 	"gorm.io/gorm"
 )
@@ -19,32 +20,44 @@ func NewDepartmentRepository(db *gorm.DB) *departmentRepository {
 	}
 }
 
-func (r *departmentRepository) GetAll() ([]models.Department, error) {
-	var departments []models.Department
-	return departments, r.db.Find(&departments).Error
+func (r *departmentRepository) GetAll() ([]dto.DepartmentRepository, error) {
+	var depts []models.Department
+	if err := r.db.Find(&depts).Error; err != nil {
+		return nil, err
+	}
+	return dto.DepartmentFromModels(depts), nil
 }
 
-func (r *departmentRepository) GetByID(id uint) (models.Department, error) {
-	var department models.Department
-	err := r.db.First(&department, id).Error
+func (r *departmentRepository) GetByID(id uint) (dto.DepartmentRepository, error) {
+	var dept models.Department
+	err := r.db.First(&dept, id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return models.Department{}, DepartmentNotFound
+		return dto.DepartmentRepository{}, DepartmentNotFound
 	}
-	return department, err
+	if err != nil {
+		return dto.DepartmentRepository{}, err
+	}
+	return dto.DepartmentFromModel(dept), nil
 }
 
-func (r *departmentRepository) Create(department *models.Department) (models.Department, error) {
-	return *department, r.db.Create(department).Error
+func (r *departmentRepository) Create(input dto.DepartmentCreate) (dto.DepartmentRepository, error) {
+	dept := input.ToModel()
+	if err := r.db.Create(&dept).Error; err != nil {
+		return dto.DepartmentRepository{}, err
+	}
+	return dto.DepartmentFromModel(dept), nil
 }
 
-func (r *departmentRepository) Update(department *models.Department) (models.Department, error) {
-	result := r.db.Save(department)
-
+func (r *departmentRepository) Update(input dto.DepartmentUpdate) (dto.DepartmentRepository, error) {
+	dept := input.ToModel()
+	result := r.db.Save(&dept)
 	if result.RowsAffected == 0 {
-		return models.Department{}, DepartmentNotFound
+		return dto.DepartmentRepository{}, DepartmentNotFound
 	}
-
-	return *department, result.Error
+	if result.Error != nil {
+		return dto.DepartmentRepository{}, result.Error
+	}
+	return dto.DepartmentFromModel(dept), nil
 }
 
 func (r *departmentRepository) Delete(id uint) error {

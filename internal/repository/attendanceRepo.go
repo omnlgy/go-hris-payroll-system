@@ -38,7 +38,7 @@ func (r *AttendanceRepository) GetAll() ([]models.Attendance, error) {
 
 func (r *AttendanceRepository) GetByEmployeeIDPeriod(employeeID uint, period string) ([]models.Attendance, error) {
 	var attendances []models.Attendance
-	return attendances, r.db.Where("employee_id = ? AND date LIKE ?", employeeID, period+"%").Find(&attendances).Error
+	return attendances, r.db.Where("employee_id = ? AND date::text LIKE ?", employeeID, period+"%").Find(&attendances).Error
 }
 
 func (r *AttendanceRepository) Update(attendance *models.Attendance) (models.Attendance, error) {

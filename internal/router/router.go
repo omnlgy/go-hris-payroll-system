@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/omnlgy/go-hris-payroll-system/internal/controller"
+	"github.com/omnlgy/go-hris-payroll-system/internal/middleware"
 )
 
 func DepartmentRoutes(router *gin.Engine, controller *controller.DepartmentController) {
@@ -20,29 +21,29 @@ func PositionRoutes(router *gin.Engine, controller *controller.PositionControlle
 	apiDepartments.GET("/", controller.GetPositions)
 	apiDepartments.POST("/", controller.CreatePosition)
 	apiDepartments.PUT("/:id", controller.UpdatePosition)
-	apiDepartments.DELETE("/:id", controller.DeletePosition)
+	apiDepartments.DELETE("/:id", middleware.AuthMiddleware(), middleware.RequireRole("HRD"), controller.DeletePosition)
 }
 
 func EmployeeRoutes(router *gin.Engine, controller *controller.EmployeeController) {
 	apiEmployees := router.Group("/api/employees")
 
-	apiEmployees.POST("/", controller.CreateEmployee)
+	apiEmployees.POST("/", middleware.AuthMiddleware(), middleware.RequireRole("HRD"), controller.CreateEmployee)
 	apiEmployees.GET("/", controller.GetEmployees)
-	apiEmployees.DELETE("/:id", controller.DeleteEmployee)
-	apiEmployees.PUT("/:id", controller.UpdateEmployee)
+	apiEmployees.DELETE("/:id", middleware.AuthMiddleware(), middleware.RequireRole("HRD"), controller.DeleteEmployee)
+	apiEmployees.PUT("/:id", middleware.AuthMiddleware(), middleware.RequireRole("HRD"), controller.UpdateEmployee)
 }
 
 func AttendanceRoutes(router *gin.Engine, controller *controller.AttendanceController) {
 	api := router.Group("/api")
 
-	api.POST("/attendance", controller.RecordAttendance)
+	api.POST("/attendance", middleware.AuthMiddleware(), controller.RecordAttendance)
 }
 
 func LeaveRoutes(router *gin.Engine, controller *controller.LeaveController) {
 	api := router.Group("/api")
 
-	api.POST("/leaves", controller.RequestLeave)
-	api.PATCH("/leaves/:id/approve", controller.ApproveLeave)
+	api.POST("/leaves", middleware.AuthMiddleware(), controller.RequestLeave)
+	api.PATCH("/leaves/:id/approve", middleware.AuthMiddleware(), middleware.RequireRole("HRD"), controller.ApproveLeave)
 }
 
 func SalaryRoutes(router *gin.Engine, controller *controller.SalaryController) {
@@ -50,4 +51,11 @@ func SalaryRoutes(router *gin.Engine, controller *controller.SalaryController) {
 
 	api.GET("/period/:period", controller.GetSaleryEmployeeByPeriod)
 	api.POST("/calculate", controller.CalculateSalary)
+}
+
+func AuthRoutes(router *gin.Engine, controller *controller.AuthController) {
+	api := router.Group("/api/auth")
+
+	api.POST("/login", controller.Login)
+	api.POST("/logout", controller.Logout)
 }

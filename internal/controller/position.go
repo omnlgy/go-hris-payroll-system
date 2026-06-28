@@ -6,14 +6,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/omnlgy/go-hris-payroll-system/internal/domain"
+	"github.com/omnlgy/go-hris-payroll-system/internal/dto"
 	"github.com/omnlgy/go-hris-payroll-system/internal/models"
 	"github.com/omnlgy/go-hris-payroll-system/internal/repository"
 )
-
-type CreatePositionRequest struct {
-	Title      string  `json:"title" binding:"required"`
-	BaseSalary float64 `json:"baseSalary" binding:"required"`
-}
 
 type PositionController struct {
 	service domain.PositionService
@@ -29,7 +25,9 @@ func (c *PositionController) GetPositions(ctx *gin.Context) {
 	positions, err := c.service.GetPositions()
 
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(500, dto.InternalServerErrorResponse{
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -40,10 +38,21 @@ func (c *PositionController) GetPositions(ctx *gin.Context) {
 }
 
 func (c *PositionController) CreatePosition(ctx *gin.Context) {
-	var body CreatePositionRequest
+	var body dto.CreatePositionRequest
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		ctx.JSON(400, dto.BadRequestResponse{
+			Message: "Invalid request body",
+			Errors: []struct {
+				Field   string `json:"field"`
+				Message string `json:"message"`
+			}{
+				{
+					Field:   "body",
+					Message: err.Error(),
+				},
+			},
+		})
 		return
 	}
 
@@ -55,28 +64,52 @@ func (c *PositionController) CreatePosition(ctx *gin.Context) {
 	createdPosition, err := c.service.CreatePosition(position)
 
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(500, dto.InternalServerErrorResponse{
+			Message: err.Error(),
+		})
 		return
 	}
 
-	ctx.JSON(201, gin.H{
-		"message": "Position created successfully",
-		"data":    createdPosition,
+	ctx.JSON(201, dto.SuccessResponse{
+		Message: "Position created successfully",
+		Data:    createdPosition,
 	})
 }
 
 func (c *PositionController) UpdatePosition(ctx *gin.Context) {
-	var body CreatePositionRequest
+	var body dto.CreatePositionRequest
 	var PositionID uint64
 
 	PositionID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid position ID"})
+		ctx.JSON(400, dto.BadRequestResponse{
+			Message: "Invalid request body",
+			Errors: []struct {
+				Field   string `json:"field"`
+				Message string `json:"message"`
+			}{
+				{
+					Field:   "id",
+					Message: err.Error(),
+				},
+			},
+		})
 		return
 	}
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		ctx.JSON(400, dto.BadRequestResponse{
+			Message: "Invalid request body",
+			Errors: []struct {
+				Field   string `json:"field"`
+				Message string `json:"message"`
+			}{
+				{
+					Field:   "body",
+					Message: err.Error(),
+				},
+			},
+		})
 		return
 	}
 
@@ -90,37 +123,56 @@ func (c *PositionController) UpdatePosition(ctx *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, repository.PositionNotFound) {
-			ctx.JSON(404, gin.H{"error": "Position not found"})
+			ctx.JSON(404, dto.NotFoundResponse{
+				Message: err.Error(),
+			})
 			return
 		}
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(500, dto.InternalServerErrorResponse{
+			Message: err.Error(),
+		})
 		return
 	}
 
-	ctx.JSON(200, gin.H{
-		"message": "Position updated successfully",
-		"data":    updatedPosition,
+	ctx.JSON(200, dto.SuccessResponse{
+		Message: "Position updated successfully",
+		Data:    updatedPosition,
 	})
 }
 
 func (c *PositionController) DeletePosition(ctx *gin.Context) {
 	positionID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid position ID"})
+		ctx.JSON(400, dto.BadRequestResponse{
+			Message: "Invalid position ID",
+			Errors: []struct {
+				Field   string `json:"field"`
+				Message string `json:"message"`
+			}{
+				{
+					Field:   "id",
+					Message: err.Error(),
+				},
+			},
+		})
 		return
 	}
 
 	err = c.service.DeletePosition(uint(positionID))
 	if err != nil {
 		if errors.Is(err, repository.PositionNotFound) {
-			ctx.JSON(404, gin.H{"error": "Position not found"})
+			ctx.JSON(404, dto.NotFoundResponse{
+				Message: err.Error(),
+			})
 			return
 		}
-		ctx.JSON(500, gin.H{"error": err.Error()})
+		ctx.JSON(500, dto.InternalServerErrorResponse{
+			Message: err.Error(),
+		})
 		return
 	}
 
-	ctx.JSON(200, gin.H{
-		"message": "Position deleted successfully",
+	ctx.JSON(200, dto.SuccessResponse{
+		Message: "Position deleted successfully",
 	})
 }

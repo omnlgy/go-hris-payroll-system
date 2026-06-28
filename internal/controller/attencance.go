@@ -3,11 +3,8 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/omnlgy/go-hris-payroll-system/internal/domain"
+	"github.com/omnlgy/go-hris-payroll-system/internal/dto"
 )
-
-type RecordAttendanceRequest struct {
-	EmployeeID uint `json:"employee_id" binding:"required"`
-}
 
 type AttendanceController struct {
 	service domain.AttendanceService
@@ -20,16 +17,16 @@ func NewAttendanceController(service domain.AttendanceService) *AttendanceContro
 }
 
 func (c *AttendanceController) RecordAttendance(ctx *gin.Context) {
-	var body RecordAttendanceRequest
-	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.JSON(400, gin.H{"error": err.Error()})
+	employeeID := ctx.GetUint("employee_id")
+
+	if err := c.service.Attend(employeeID); err != nil {
+		ctx.JSON(500, dto.InternalServerErrorResponse{
+			Message: err.Error(),
+		})
 		return
 	}
 
-	if err := c.service.Attend(body.EmployeeID); err != nil {
-		ctx.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx.JSON(200, gin.H{"message": "Attendance recorded successfully"})
+	ctx.JSON(200, dto.SuccessResponse{
+		Message: "Attendance recorded successfully",
+	})
 }

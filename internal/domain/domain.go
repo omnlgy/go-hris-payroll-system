@@ -3,14 +3,15 @@ package domain
 import (
 	"time"
 
+	"github.com/omnlgy/go-hris-payroll-system/internal/dto"
 	"github.com/omnlgy/go-hris-payroll-system/internal/models"
 )
 
 type DepartmentRepository interface {
-	Create(department *models.Department) (models.Department, error)
-	GetAll() ([]models.Department, error)
-	GetByID(id uint) (models.Department, error)
-	Update(department *models.Department) (models.Department, error)
+	Create(input dto.DepartmentCreate) (dto.DepartmentRepository, error)
+	GetAll() ([]dto.DepartmentRepository, error)
+	GetByID(id uint) (dto.DepartmentRepository, error)
+	Update(input dto.DepartmentUpdate) (dto.DepartmentRepository, error)
 	Delete(id uint) error
 }
 
@@ -26,6 +27,7 @@ type EmployeeRepository interface {
 	Create(employee *models.Employee) (models.Employee, error)
 	GetAll(filter models.FilterEmployee) ([]models.Employee, error)
 	GetByID(id uint) (models.Employee, error)
+	GetEmployeeByEmail(email string) (models.Employee, error)
 	Update(employee *models.Employee) (models.Employee, error)
 	Delete(id uint) error
 }
@@ -74,10 +76,10 @@ type AttendanceService interface {
 }
 
 type DepartmentService interface {
-	GetDepartments() ([]models.Department, error)
-	GetDepartmentByID(id uint) (models.Department, error)
-	CreateDepartment(department *models.Department) (models.Department, error)
-	UpdateDepartment(department *models.Department) (models.Department, error)
+	GetDepartments() ([]dto.DepartmentRepository, error)
+	GetDepartmentByID(id uint) (dto.DepartmentRepository, error)
+	CreateDepartment(input dto.DepartmentCreate) (dto.DepartmentRepository, error)
+	UpdateDepartment(input dto.DepartmentUpdate) (dto.DepartmentRepository, error)
 	DeleteDepartment(id uint) error
 }
 

@@ -5,20 +5,21 @@ import (
 
 	"github.com/omnlgy/go-hris-payroll-system/internal/domain"
 	"github.com/omnlgy/go-hris-payroll-system/internal/models"
+	"github.com/omnlgy/go-hris-payroll-system/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type EmployeeService struct {
-	repo      domain.EmployeeRepository
-	deptSvc   domain.DepartmentService
-	posSvc    domain.PositionService
+	repo    domain.EmployeeRepository
+	deptSvc domain.DepartmentService
+	posSvc  domain.PositionService
 }
 
 func NewEmployeeService(repo domain.EmployeeRepository, deptSvc domain.DepartmentService, posSvc domain.PositionService) *EmployeeService {
 	return &EmployeeService{
-		repo:      repo,
-		deptSvc:   deptSvc,
-		posSvc:    posSvc,
+		repo:    repo,
+		deptSvc: deptSvc,
+		posSvc:  posSvc,
 	}
 }
 
@@ -33,11 +34,11 @@ func (s *EmployeeService) Add(employee *models.Employee) (models.Employee, error
 
 	// Hash password if provided
 	if employee.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(employee.Password), bcrypt.DefaultCost)
+		hashedPassword, err := utils.HashPassword(employee.Password)
 		if err != nil {
 			return models.Employee{}, err
 		}
-		employee.Password = string(hashedPassword)
+		employee.Password = hashedPassword
 	}
 
 	// Set default role if empty

@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/omnlgy/go-hris-payroll-system/internal/domain"
-	"github.com/omnlgy/go-hris-payroll-system/internal/models"
+	"github.com/omnlgy/go-hris-payroll-system/internal/dto"
 )
 
 type DepartmentService struct {
@@ -15,32 +15,20 @@ func NewDepartmentService(repo domain.DepartmentRepository) *DepartmentService {
 	}
 }
 
-func (s *DepartmentService) GetDepartments() ([]models.Department, error) {
+func (s *DepartmentService) GetDepartments() ([]dto.DepartmentRepository, error) {
 	return s.repo.GetAll()
 }
 
-func (s *DepartmentService) GetDepartmentByID(id uint) (models.Department, error) {
+func (s *DepartmentService) GetDepartmentByID(id uint) (dto.DepartmentRepository, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *DepartmentService) CreateDepartment(department *models.Department) (models.Department, error) {
-	createdDepartment, err := s.repo.Create(department)
-
-	if err != nil {
-		return models.Department{}, err
-	}
-
-	return createdDepartment, nil
+func (s *DepartmentService) CreateDepartment(input dto.DepartmentCreate) (dto.DepartmentRepository, error) {
+	return s.repo.Create(input)
 }
 
-func (s *DepartmentService) UpdateDepartment(department *models.Department) (models.Department, error) {
-	updatedDepartment, err := s.repo.Update(department)
-
-	if err != nil {
-		return models.Department{}, err
-	}
-
-	return updatedDepartment, nil
+func (s *DepartmentService) UpdateDepartment(input dto.DepartmentUpdate) (dto.DepartmentRepository, error) {
+	return s.repo.Update(input)
 }
 
 func (s *DepartmentService) DeleteDepartment(id uint) error {

@@ -31,10 +31,14 @@ func (r *LeaveRepository) GetByID(id uint) (models.Leave, error) {
 }
 
 func (r *LeaveRepository) Update(leave *models.Leave) (models.Leave, error) {
-	if err := r.db.Save(leave).Error; err != nil {
+	if err := r.db.Model(&models.Leave{}).Where("id = ?", leave.ID).Updates(map[string]interface{}{
+		"status": leave.Status,
+	}).Error; err != nil {
 		return models.Leave{}, err
 	}
-	return *leave, r.db.Preload("Employee").First(leave, leave.ID).Error
+	var result models.Leave
+	err := r.db.Preload("Employee").First(&result, leave.ID).Error
+	return result, err
 }
 
 func (r *LeaveRepository) Delete(id uint) error {
