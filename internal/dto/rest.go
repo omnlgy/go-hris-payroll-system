@@ -32,7 +32,7 @@ type ForbiddenResponse struct {
 type CreateEmployeeRequest struct {
 	NIK          string `json:"nik" binding:"required"`
 	FullName     string `json:"full_name" binding:"required"`
-	Email        string `json:"email" binding:"required,email"`
+	Email        string `json:"email" binding:"required,email,companyemail"`
 	DepartmentID uint   `json:"department_id" binding:"required"`
 	PositionID   uint   `json:"position_id" binding:"required"`
 	Role         string `json:"role" binding:"required,oneof=ADMIN MANAGER EMPLOYEE HRD"`

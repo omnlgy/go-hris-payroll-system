@@ -57,5 +57,6 @@ func AuthRoutes(router *gin.Engine, controller *controller.AuthController) {
 	api := router.Group("/api/auth")
 
 	api.POST("/login", controller.Login)
+	api.POST("/register", controller.Register)
 	api.POST("/logout", controller.Logout)
 }

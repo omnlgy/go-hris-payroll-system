@@ -34,4 +34,5 @@ ujian week 3
 
 ### Auth Routes (`/api/auth`)
 *   `POST /api/auth/login` - User login
+*   `POST /api/auth/register` - Register new employee
 *   `POST /api/auth/logout` - User logout

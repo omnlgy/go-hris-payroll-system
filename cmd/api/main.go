@@ -5,11 +5,14 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/omnlgy/go-hris-payroll-system/internal/controller"
 	"github.com/omnlgy/go-hris-payroll-system/internal/models"
 	"github.com/omnlgy/go-hris-payroll-system/internal/repository"
 	"github.com/omnlgy/go-hris-payroll-system/internal/router"
 	"github.com/omnlgy/go-hris-payroll-system/internal/service"
+	"github.com/omnlgy/go-hris-payroll-system/internal/validation"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,6 +21,10 @@ func main() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		dsn = "host=localhost user=admin password=admin123 dbname=hris port=5432 sslmode=disable"
+	}
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("companyemail", validation.CompanyEmailValidator)
 	}
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -54,7 +61,7 @@ func main() {
 	attSvc := service.NewAttendanceService(attRepo)
 	leaveSvc := service.NewLeaveService(leaveRepo)
 	salSvc := service.NewSalaryService(salRepo, attRepo, empRepo)
-	authSvc := service.NewAuthService(empRepo, blackListRepo)
+	authSvc := service.NewAuthService(empRepo, blackListRepo, deptRepo, posRepo)
 
 	// Controllers
 	deptCtrl := controller.NewDepartmentController(deptSvc)

@@ -1,22 +1,28 @@
 package service
 
 import (
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/omnlgy/go-hris-payroll-system/internal/domain"
+	"github.com/omnlgy/go-hris-payroll-system/internal/models"
 	"github.com/omnlgy/go-hris-payroll-system/internal/utils"
 )
 
 type AuthService struct {
-	employeeRepo  domain.EmployeeRepository
-	blackListRepo domain.BlacklistedTokenRepository
+	employeeRepo   domain.EmployeeRepository
+	blackListRepo  domain.BlacklistedTokenRepository
+	departmentRepo domain.DepartmentRepository
+	positionRepo   domain.PositionRepository
 }
 
-func NewAuthService(employeeRepo domain.EmployeeRepository, blackListRepo domain.BlacklistedTokenRepository) *AuthService {
+func NewAuthService(employeeRepo domain.EmployeeRepository, blackListRepo domain.BlacklistedTokenRepository, departmentRepo domain.DepartmentRepository, positionRepo domain.PositionRepository) *AuthService {
 	return &AuthService{
-		employeeRepo:  employeeRepo,
-		blackListRepo: blackListRepo,
+		employeeRepo:   employeeRepo,
+		blackListRepo:  blackListRepo,
+		departmentRepo: departmentRepo,
+		positionRepo:   positionRepo,
 	}
 }
 
@@ -54,6 +60,32 @@ func (s *AuthService) Logout(tokenString string) error {
 
 	_, err = s.blackListRepo.Blacklist(tokenString, expiredAt)
 	return err
+}
+
+func (s *AuthService) Register(employee *models.Employee) (models.Employee, error) {
+	// Validate department and position
+	if _, err := s.departmentRepo.GetByID(employee.DepartmentID); err != nil {
+		return models.Employee{}, errors.New("department not found")
+	}
+	if _, err := s.positionRepo.GetByID(employee.PositionID); err != nil {
+		return models.Employee{}, errors.New("position not found")
+	}
+
+	// Hash password if provided
+	if employee.Password != "" {
+		hashedPassword, err := utils.HashPassword(employee.Password)
+		if err != nil {
+			return models.Employee{}, err
+		}
+		employee.Password = hashedPassword
+	}
+
+	// Set default role if empty
+	if employee.Role == "" {
+		employee.Role = "EMPLOYEE"
+	}
+
+	return s.employeeRepo.Create(employee)
 }
 
 type JWTClaims struct {
